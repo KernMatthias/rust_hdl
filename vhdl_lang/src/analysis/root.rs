@@ -427,12 +427,24 @@ impl DesignRoot {
                     }
                     // Find all components with same name as entity in the library
                     AnyEntKind::Design(Design::Entity(..)) => {
-                        let mut searcher = FindAllEnt::new(self, |ent| {
-                            matches!(ent.kind(), AnyEntKind::Component(_))
-                                && matches!(
+                        let mut searcher = FindAllEnt::new(self, |ent| match ent.kind() {
+                            AnyEntKind::Component(_) => {
+                                matches!(
                                     ent.designator(),
                                     Designator::Identifier(comp_ident) if comp_ident == ident
                                 )
+                            }
+                            AnyEntKind::Design(d) => match d {
+                                Design::Architecture(a) => {
+                                    // compare the entity of the 
+                                    matches!(
+                                        a.0.designator(),
+                                        Designator::Identifier(ent_ident) if ent_ident == ident
+                                    )
+                                }
+                                _ => false,
+                            },
+                            _ => false,
                         });
 
                         let _ = self.search_library(library_name, &mut searcher);
