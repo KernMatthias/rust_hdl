@@ -241,7 +241,6 @@ impl Project {
 
     pub fn find_type_definition<'a>(&'a self, source: &Source, cursor: Position) -> Option<EntRef<'a>> {
         let ent = self.root.search_reference(source, cursor)?;
-        error!("{:?}", ent);
         self.root.find_type_definition_of(ent)
     }
 
