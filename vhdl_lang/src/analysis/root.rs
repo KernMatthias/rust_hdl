@@ -19,6 +19,7 @@ use crate::ast::*;
 use crate::data::*;
 use crate::syntax::Symbols;
 use fnv::{FnvHashMap, FnvHashSet};
+use log::error;
 use parking_lot::RwLock;
 use std::collections::hash_map::Entry;
 use std::ops::Deref;
@@ -398,6 +399,19 @@ impl DesignRoot {
         } else {
             // The definition is the same as the declaration
             Some(decl)
+        }
+    }
+
+    pub fn find_type_definition_of<'a>(&'a self, decl: EntRef<'a>) -> Option<EntRef<'a>> {
+        if decl.kind.is_instance() {
+            error!("decl.parent: {:?}", decl.parent);
+            let mut searcher = FindEnt::new(self, |ent| decl.is_instance_of(ent));
+            let _ = self.search(&mut searcher);
+
+            searcher.result
+        } else {
+            error!("Type definition of {:?} not implemented", decl);
+            None
         }
     }
 

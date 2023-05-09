@@ -10,6 +10,7 @@ use crate::config::Config;
 use crate::syntax::VHDLParser;
 use crate::{data::*, EntHierarchy};
 use fnv::{FnvHashMap, FnvHashSet};
+use log::error;
 use std::collections::hash_map::Entry;
 use std::path::{Path, PathBuf};
 
@@ -236,6 +237,12 @@ impl Project {
     pub fn find_definition<'a>(&'a self, source: &Source, cursor: Position) -> Option<EntRef<'a>> {
         let ent = self.root.search_reference(source, cursor)?;
         self.root.find_definition_of(ent)
+    }
+
+    pub fn find_type_definition<'a>(&'a self, source: &Source, cursor: Position) -> Option<EntRef<'a>> {
+        let ent = self.root.search_reference(source, cursor)?;
+        error!("{:?}", ent);
+        self.root.find_type_definition_of(ent)
     }
 
     pub fn find_declaration<'a>(&'a self, source: &Source, cursor: Position) -> Option<EntRef<'a>> {

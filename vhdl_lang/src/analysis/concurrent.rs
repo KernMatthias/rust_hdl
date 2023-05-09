@@ -168,7 +168,7 @@ impl<'a> AnalyzeContext<'a> {
                 }
             }
             ConcurrentStatement::Instance(ref mut instance) => {
-                self.analyze_instance(scope, instance, diagnostics)?;
+                self.analyze_instance(scope, instance, diagnostics, statement.label)?;
             }
             ConcurrentStatement::Assignment(ref mut assign) => {
                 // @TODO more delaymechanism
@@ -248,7 +248,10 @@ impl<'a> AnalyzeContext<'a> {
         scope: &Scope<'a>,
         instance: &mut InstantiationStatement,
         diagnostics: &mut dyn DiagnosticHandler,
+        label: WithDecl<Option<Ident>>
     ) -> FatalResult {
+        // if let Some(ref mut label) = label.tree {
+        // }
         match instance.unit {
             InstantiatedUnit::Entity(ref mut entity_name, ref mut architecture_name) => {
                 if let Err(err) =

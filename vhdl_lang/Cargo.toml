@@ -25,6 +25,7 @@ parking_lot = "0"
 dunce = "1"
 pinned_vec = "0"
 itertools = "0"
+log = "0"
 
 [dev-dependencies]
 tempfile = "3"

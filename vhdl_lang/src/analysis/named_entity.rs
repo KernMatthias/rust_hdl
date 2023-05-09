@@ -91,6 +91,10 @@ impl<'a> AnyEntKind<'a> {
         matches!(self, AnyEntKind::Type(..))
     }
 
+    pub fn is_instance(&self) -> bool {
+        matches!(self, AnyEntKind::Concurrent(Some(Concurrent::Instance)))
+    }
+
     pub fn describe(&self) -> &str {
         use AnyEntKind::*;
         match self {
@@ -277,6 +281,16 @@ impl<'a> AnyEnt<'a> {
 
     pub fn is_declared_by(&self, other: EntRef) -> bool {
         if let Related::DeclaredBy(ent) = self.related {
+            if ent.id() == other.id() {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    pub fn is_instance_of(&self, other: EntRef) -> bool {
+        if let Related::InstanceOf(ent) = self.related {
             if ent.id() == other.id() {
                 return true;
             }

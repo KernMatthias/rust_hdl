@@ -7,6 +7,7 @@
 use lsp_types::*;
 
 use fnv::FnvHashMap;
+use lsp_types::request::GotoTypeDefinitionParams;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use vhdl_lang::ast::{Designator, ObjectClass};
@@ -119,6 +120,9 @@ impl VHDLServer {
             )),
             declaration_provider: Some(DeclarationCapability::Simple(true)),
             definition_provider: Some(OneOf::Left(true)),
+            type_definition_provider: Some(
+                TypeDefinitionProviderCapability::Simple(true),
+            ),
             hover_provider: Some(HoverProviderCapability::Simple(true)),
             references_provider: Some(OneOf::Left(true)),
             implementation_provider: Some(ImplementationProviderCapability::Simple(true)),
@@ -592,6 +596,17 @@ impl VHDLServer {
         } else {
             Vec::new()
         }
+    }
+
+    pub fn text_document_type_definition(&self, params: &GotoTypeDefinitionParams) -> Option<Location> {
+        let source = self
+            .project
+            .get_source(&uri_to_file_name(&params.text_document_position_params.text_document.uri))?;
+
+        let ent = self
+            .project
+            .find_type_definition(&source, from_lsp_pos(params.text_document_position_params.position))?;
+        Some(srcpos_to_location(ent.decl_pos()?))
     }
 
     fn message_filter(&self) -> MessageFilter {
