@@ -8,6 +8,7 @@
 
 use crate::data::*;
 use fnv::FnvHashMap;
+use globset::{Glob, GlobMatcher};
 use std::env;
 use std::fs::File;
 use std::io;
@@ -21,11 +22,21 @@ pub struct Config {
     libraries: FnvHashMap<String, LibraryConfig>,
 }
 
-#[derive(Clone, PartialEq, Eq, Default, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct LibraryConfig {
     name: String,
     patterns: Vec<String>,
+    exclude_patterns: Vec<GlobMatcher>,
 }
+
+// GlobMatcher does not implement PartialEq or Eq.
+// To keep previous functionality implement them
+impl PartialEq for LibraryConfig {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.patterns == other.patterns
+    }
+}
+impl Eq for LibraryConfig {}
 
 impl LibraryConfig {
     /// Return a vector of file names
@@ -102,7 +113,8 @@ impl LibraryConfig {
                 }
             }
         }
-        Self::remove_duplicates(result)
+        let deduplicated = Self::remove_duplicates(result);
+        self.remove_excluded(deduplicated)
     }
 
     /// Remove duplicate file names from the result
@@ -121,6 +133,26 @@ impl LibraryConfig {
     /// Returns the name of the library
     pub fn name(&self) -> &str {
         self.name.as_str()
+    }
+
+    fn remove_excluded(&self, deduplicated: Vec<PathBuf>) -> Vec<PathBuf> {
+        // optimitzation in case of no exclusions
+        if self.exclude_patterns.is_empty() {
+            return deduplicated;
+        }
+
+        let mut result = Vec::with_capacity(deduplicated.len());
+
+        // check every file if it should be excluded
+        'outer: for file in deduplicated.into_iter() {
+            for matcher in self.exclude_patterns.iter() {
+                if matcher.is_match(&file) {
+                    continue 'outer;
+                }
+            }
+            result.push(file);
+        }
+        result
     }
 }
 
@@ -156,11 +188,36 @@ impl Config {
                 patterns.push(path);
             }
 
+            let exclude_patterns = if let Some(excludes_arr) = lib.get("excludes") {
+                excludes_arr
+                    .as_array()
+                    .ok_or_else(|| format!("excludes pattern must be an array (library {name})"))?
+                    .iter()
+                    .map(|pat| {
+                        let pat_str = pat.as_str().ok_or_else(|| format!("not a string"))?;
+                        let path = parent.join(pat_str);
+                        let path = path
+                            .to_str()
+                            .ok_or_else(|| format!("Could not convert {path:?} to string"))?;
+
+                        match Glob::new(path) {
+                            Ok(globber) => Ok(globber.compile_matcher()),
+                            Err(e) => Err(format!(
+                                "error converting {pat_str} to a globbing matcher: {e:?}"
+                            )),
+                        }
+                    })
+                    .collect::<Result<Vec<_>, String>>()?
+            } else {
+                Default::default()
+            };
+
             libraries.insert(
                 name.to_owned(),
                 LibraryConfig {
                     name: name.to_owned(),
                     patterns,
+                    exclude_patterns,
                 },
             );
         }
@@ -204,6 +261,7 @@ impl Config {
                     LibraryConfig {
                         name: library.name.clone(),
                         patterns: library.patterns.clone(),
+                        exclude_patterns: library.exclude_patterns.clone(),
                     },
                 );
             }
