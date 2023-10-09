@@ -296,6 +296,11 @@ impl Project {
     pub fn list_completion_options(&self, source: &Source, cursor: Position) -> Vec<String> {
         self.root.list_completion_options(source, cursor)
     }
+    
+    pub fn reload(&mut self, config: &Config, messages: &mut dyn MessageHandler) {
+        // reload the whole project, might need some optimization
+        *self = Self::from_config(config, messages);
+    }
 }
 
 /// Multiply clonable value by cloning

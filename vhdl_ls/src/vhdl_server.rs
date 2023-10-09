@@ -312,16 +312,20 @@ impl VHDLServer {
         }
     }
     
+    // the easiest way to handle these events is to just reload the whole project
     pub fn workspace_did_create_files(&mut self, params: &CreateFilesParams) {
-        
+        let config = self.load_config();
+        self.project.reload(&config, &mut self.message_filter());
     }
 
     pub fn workspace_did_rename_files(&mut self, params: &RenameFilesParams) {
-        
+        let config = self.load_config();
+        self.project.reload(&config, &mut self.message_filter());
     }
 
     pub fn workspace_did_delete_files(&mut self, params: &DeleteFilesParams) {
-        
+        let config = self.load_config();
+        self.project.reload(&config, &mut self.message_filter());
     }
     
     /// Called when the client requests a completion.
