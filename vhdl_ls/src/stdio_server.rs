@@ -256,6 +256,21 @@ impl ConnectionRpcChannel {
             Ok(params) => return server.workspace_did_change_watched_files(&params),
             Err(notification) => notification,
         };
+        // workspace/didCreate
+        let notification = match extract::<notification::DidCreateFiles>(notification) {
+            Ok(params) => return server.workspace_did_create_files(&params),
+            Err(notification) => notification,
+        };
+        // workspace/didRename
+        let notification = match extract::<notification::DidRenameFiles>(notification) {
+            Ok(params) => return server.workspace_did_rename_files(&params),
+            Err(notification) => notification,
+        };
+        // workspace/didDelete
+        let notification = match extract::<notification::DidDeleteFiles>(notification) {
+            Ok(params) => return server.workspace_did_delete_files(&params),
+            Err(notification) => notification,
+        };
         // exit
         let notification = match extract::<notification::Exit>(notification) {
             Ok(_params) => return server.exit_notification(),

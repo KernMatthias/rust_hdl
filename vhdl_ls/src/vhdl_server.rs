@@ -7,6 +7,8 @@
 use lsp_types::*;
 
 use fnv::FnvHashMap;
+use lsp_types::notification::{DidCreateFiles, DidDeleteFiles, DidRenameFiles};
+use lsp_types::request::GotoTypeDefinitionParams;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use vhdl_lang::ast::{Designator, ObjectClass};
@@ -136,6 +138,56 @@ impl VHDLServer {
                 work_done_progress_options: Default::default(),
                 completion_item: Default::default(),
             }),
+            semantic_tokens_provider: Some(
+                SemanticTokensServerCapabilities::SemanticTokensOptions(SemanticTokensOptions {
+                    work_done_progress_options: Default::default(),
+                    legend: SemanticTokensLegend {
+                        token_types: vec![],
+                        token_modifiers: vec![],
+                    },
+                    range: None,
+                    full: Some(SemanticTokensFullOptions::Bool(true)),
+                }),
+            ),
+            workspace: Some(WorkspaceServerCapabilities {
+                file_operations: Some(WorkspaceFileOperationsServerCapabilities {
+                    did_create: Some(FileOperationRegistrationOptions {
+                        filters: vec![FileOperationFilter {
+                            pattern: {
+                                FileOperationPattern {
+                                    glob: "*.vhd".into(),
+                                    ..Default::default()
+                                }
+                            },
+                            ..Default::default()
+                        }],
+                    }),
+                    did_rename: Some(FileOperationRegistrationOptions {
+                        filters: vec![FileOperationFilter {
+                            pattern: {
+                                FileOperationPattern {
+                                    glob: "*.vhd".into(),
+                                    ..Default::default()
+                                }
+                            },
+                            ..Default::default()
+                        }],
+                    }),
+                    did_delete: Some(FileOperationRegistrationOptions {
+                        filters: vec![FileOperationFilter {
+                            pattern: {
+                                FileOperationPattern {
+                                    glob: "*.vhd".into(),
+                                    ..Default::default()
+                                }
+                            },
+                            ..Default::default()
+                        }],
+                    }),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
             ..Default::default()
         };
 
@@ -259,7 +311,19 @@ impl VHDLServer {
             }
         }
     }
+    
+    pub fn workspace_did_create_files(&mut self, params: &CreateFilesParams) {
+        
+    }
 
+    pub fn workspace_did_rename_files(&mut self, params: &RenameFilesParams) {
+        
+    }
+
+    pub fn workspace_did_delete_files(&mut self, params: &DeleteFilesParams) {
+        
+    }
+    
     /// Called when the client requests a completion.
     /// This function looks in the source code to find suitable options and then returns them
     pub fn request_completion(&mut self, params: &CompletionParams) -> CompletionList {
@@ -593,6 +657,14 @@ impl VHDLServer {
                     .collect(),
             ))
         }
+    }
+
+    pub fn semantic_token(&self, params: &SemanticTokensParams) -> Option<SemanticTokensResult> {
+        let source = self
+            .project
+            .get_source(&uri_to_file_name(&params.text_document.uri))?;
+
+        None
     }
 
     pub fn text_document_hover(&mut self, params: &TextDocumentPositionParams) -> Option<Hover> {

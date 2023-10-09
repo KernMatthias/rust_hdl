@@ -412,6 +412,8 @@ impl<'a> AnyEnt<'a> {
     unsafe fn unsafe_ref_mut(&self) -> &mut Self {
         // NOTE: Use read_volatile to prevent compiler to optimization away assignment to the returned reference
         let mut_self: *mut AnyEnt = std::ptr::read_volatile(&self) as *const AnyEnt as *mut AnyEnt;
+
+        #[allow(invalid_reference_casting)]
         &mut *mut_self
     }
 
