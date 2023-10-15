@@ -190,6 +190,14 @@ impl ConnectionRpcChannel {
             }
             Err(request) => request,
         };
+        let request = match extract::<request::SemanticTokensFullRequest>(request) {
+            Ok((id, params)) => {
+                let result = server.semantic_tokens_full(&params);
+                self.send_response(lsp_server::Response::new_ok(id, result));
+                return;
+            }
+            Err(request) => request,
+        };
         let request = match extract::<request::HoverRequest>(request) {
             Ok((id, params)) => {
                 let result = server.text_document_hover(&params.text_document_position_params);

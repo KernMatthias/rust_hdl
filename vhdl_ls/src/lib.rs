@@ -11,5 +11,6 @@ extern crate log;
 mod rpc_channel;
 mod stdio_server;
 mod vhdl_server;
+mod semantic_tokens;
 pub use crate::stdio_server::start;
 pub use crate::vhdl_server::VHDLServerSettings;

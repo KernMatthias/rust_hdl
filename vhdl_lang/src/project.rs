@@ -6,6 +6,7 @@
 
 use crate::analysis::{AnyEnt, DesignRoot, EntRef};
 use crate::ast::DesignFile;
+use crate::ast::search::FileSymbolCollector;
 use crate::config::Config;
 use crate::syntax::VHDLParser;
 use crate::{data::*, EntHierarchy};
@@ -296,10 +297,16 @@ impl Project {
     pub fn list_completion_options(&self, source: &Source, cursor: Position) -> Vec<String> {
         self.root.list_completion_options(source, cursor)
     }
-    
+
     pub fn reload(&mut self, config: &Config, messages: &mut dyn MessageHandler) {
         // reload the whole project, might need some optimization
         *self = Self::from_config(config, messages);
+    }
+
+    pub fn get_source_tokens(&self, source: &Source) {
+        let mut collector = FileSymbolCollector::new(&self.root);
+        let _ = self.root.search(&mut collector);
+        collector.get_result()
     }
 }
 

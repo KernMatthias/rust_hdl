@@ -88,10 +88,6 @@ impl VHDLServer {
     fn load_config(&self) -> Config {
         let mut config = Config::default();
 
-        if self.use_external_config {
-            config.load_external_config(&mut self.message_filter());
-        }
-
         match self.load_root_uri_config() {
             Ok(root_config) => {
                 config.append(&root_config, &mut self.message_filter());
@@ -105,6 +101,10 @@ impl VHDLServer {
                 ));
             }
         };
+
+        if self.use_external_config {
+            config.load_external_config(&mut self.message_filter());
+        }
 
         config
     }
@@ -311,7 +311,7 @@ impl VHDLServer {
             }
         }
     }
-    
+
     // the easiest way to handle these events is to just reload the whole project
     pub fn workspace_did_create_files(&mut self, params: &CreateFilesParams) {
         let config = self.load_config();
@@ -327,7 +327,7 @@ impl VHDLServer {
         let config = self.load_config();
         self.project.reload(&config, &mut self.message_filter());
     }
-    
+
     /// Called when the client requests a completion.
     /// This function looks in the source code to find suitable options and then returns them
     pub fn request_completion(&mut self, params: &CompletionParams) -> CompletionList {
@@ -667,6 +667,8 @@ impl VHDLServer {
         let source = self
             .project
             .get_source(&uri_to_file_name(&params.text_document.uri))?;
+
+        let tokens = self.project.get_source_tokens(&source);
 
         None
     }

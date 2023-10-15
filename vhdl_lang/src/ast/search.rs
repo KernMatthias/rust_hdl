@@ -1885,3 +1885,64 @@ pub fn check_no_unresolved(tree: &mut impl Search) {
     let tokens: Vec<Token> = Vec::new();
     let _ = tree.search(&tokens, &mut searcher);
 }
+
+pub struct FileSymbolCollector<'a> {
+    root: &'a DesignRoot,
+    result: ()// Vec</*todo: find type that goes here!*/>,
+}
+
+impl<'a> FileSymbolCollector<'a> {
+    pub fn new(root: &'a DesignRoot) -> Self {
+        Self {
+            root,
+            result: Default::default(),
+        }
+    }
+
+    pub fn get_result(self) {
+        self.result
+    }
+}
+
+impl<'a> Searcher for FileSymbolCollector<'a> {
+    /// Search an position that has a reference to a declaration
+    fn search_pos_with_ref(
+        &mut self,
+        _ctx: &dyn TokenAccess,
+        _pos: &SrcPos,
+        _ref: &mut Reference,
+    ) -> SearchState {
+        NotFinished
+    }
+
+    /// Search a designator that has a reference to a declaration
+    fn search_designator_ref(
+        &mut self,
+        ctx: &dyn TokenAccess,
+        pos: &mut SrcPos,
+        designator: &mut WithRef<Designator>,
+    ) -> SearchState {
+        self.search_pos_with_ref(ctx, pos, &mut designator.reference)
+    }
+
+    /// Search an identifier that has a reference to a declaration
+    fn search_ident_ref(
+        &mut self,
+        ctx: &dyn TokenAccess,
+        ident: &mut WithRef<Ident>,
+    ) -> SearchState {
+        self.search_pos_with_ref(ctx, &ident.item.pos, &mut ident.reference)
+    }
+
+    /// Search a declaration of a named entity
+    fn search_decl(&mut self, _ctx: &dyn TokenAccess, _decl: FoundDeclaration) -> SearchState {
+        NotFinished
+    }
+
+    fn search_with_pos(&mut self, _ctx: &dyn TokenAccess, _pos: &SrcPos) -> SearchState {
+        NotFinished
+    }
+    fn search_source(&mut self, _ctx: &dyn TokenAccess, _source: &Source) -> SearchState {
+        NotFinished
+    }
+}
