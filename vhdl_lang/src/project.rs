@@ -5,10 +5,10 @@
 // Copyright (c) 2018, Olof Kraigher olof.kraigher@gmail.com
 
 use crate::analysis::{AnyEnt, DesignRoot, EntRef};
-use crate::ast::DesignFile;
+use crate::ast::{DesignFile, tokens::SourceToken};
 use crate::ast::search::FileSymbolCollector;
 use crate::config::Config;
-use crate::syntax::VHDLParser;
+use crate::syntax::{VHDLParser, Symbols};
 use crate::{data::*, EntHierarchy};
 use fnv::{FnvHashMap, FnvHashSet};
 use std::collections::hash_map::Entry;
@@ -303,10 +303,16 @@ impl Project {
         *self = Self::from_config(config, messages);
     }
 
-    pub fn get_source_tokens(&self, source: &Source) {
-        let mut collector = FileSymbolCollector::new(&self.root);
+    /// gets all the tokens of a file in order
+    pub fn get_source_tokens(&self, source: &Source) -> Vec<SourceToken> {
+        /* let mut collector = FileSymbolCollector::new(&self.root);
         let _ = self.root.search(&mut collector);
-        collector.get_result()
+        return collector.get_result();*/
+
+        // maybe pass filename directly
+        let src_file = self.files.get(source.file_name().into()).unwrap();
+
+        Vec::<SourceToken>::from(&src_file.source)
     }
 }
 

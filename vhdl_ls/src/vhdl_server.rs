@@ -11,7 +11,7 @@ use lsp_types::notification::{DidCreateFiles, DidDeleteFiles, DidRenameFiles};
 use lsp_types::request::GotoTypeDefinitionParams;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use vhdl_lang::ast::{Designator, ObjectClass};
+use vhdl_lang::ast::{tokens::SourceToken, Designator, ObjectClass};
 
 use crate::rpc_channel::SharedRpcChannel;
 use std::io;
@@ -663,14 +663,24 @@ impl VHDLServer {
         }
     }
 
-    pub fn semantic_token(&self, params: &SemanticTokensParams) -> Option<SemanticTokensResult> {
+    pub fn text_document_semantic_tokens_full(
+        &self,
+        params: &SemanticTokensParams,
+    ) -> Option<SemanticTokensResult> {
         let source = self
             .project
             .get_source(&uri_to_file_name(&params.text_document.uri))?;
 
         let tokens = self.project.get_source_tokens(&source);
 
-        None
+        // convert tokens to semantic tokens...
+
+        let res = tokens
+            .iter()
+            .map(|t| to_semantic_token(t))
+            .collect::<Vec<SemanticToken>>();
+
+        Some(res)
     }
 
     pub fn text_document_hover(&mut self, params: &TextDocumentPositionParams) -> Option<Hover> {
@@ -725,6 +735,12 @@ impl VHDLServer {
 
     fn message(&self, msg: Message) {
         self.message_filter().push(msg);
+    }
+}
+
+fn to_semantic_token(t: &SourceToken) -> SemanticToken {
+    SemanticToken {
+        length: t.pos
     }
 }
 

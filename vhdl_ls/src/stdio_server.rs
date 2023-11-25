@@ -192,7 +192,7 @@ impl ConnectionRpcChannel {
         };
         let request = match extract::<request::SemanticTokensFullRequest>(request) {
             Ok((id, params)) => {
-                let result = server.semantic_tokens_full(&params);
+                let result = server.text_document_semantic_tokens_full(&params);
                 self.send_response(lsp_server::Response::new_ok(id, result));
                 return;
             }

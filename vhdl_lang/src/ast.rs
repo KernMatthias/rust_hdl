@@ -18,6 +18,8 @@ mod any_design_unit;
 #[macro_use]
 pub mod search;
 
+pub mod tokens;
+
 pub use self::display::*;
 pub(crate) use self::util::*;
 pub(crate) use any_design_unit::*;

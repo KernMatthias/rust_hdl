@@ -460,6 +460,125 @@ pub struct Token {
     pub comments: Option<Box<TokenComments>>,
 }
 
+impl Token {
+    pub fn is_keyword(&self) -> bool {
+        matches!(
+            self.kind,
+            Architecture
+                | Entity
+                | Configuration
+                | Package
+                | Block
+                | Process
+                | Generate
+                | Postponed
+                | Library
+                | Label
+                | Use
+                | Context
+                | Body
+                | Component
+                | Is
+                | Return
+                | Null
+                | Of
+                | On
+                | Generic
+                | Map
+                | Default
+                | Port
+                | Attribute
+                | Begin
+                | If
+                | Loop
+                | While
+                | Case
+                | Else
+                | Elsif
+                | Then
+                | When
+                | With
+                | Select
+                | Next
+                | Exit
+                | For
+                | Force
+                | Release
+                | Assert
+                | Report
+                | Severity
+                | Wait
+                | After
+                | Transport
+                | Inertial
+                | Reject
+                | Unaffected
+                | Until
+                | End
+                | All
+                | Range
+                | Downto
+                | To
+                | In
+                | Out
+                | InOut
+                | Buffer
+                | Linkage
+                | Signal
+                | Constant
+                | Variable
+                | File
+                | Open
+                | Alias
+                | Shared
+                | Others
+                | Record
+                | Type
+                | Subtype
+                | Access
+                | Units
+                | New
+                | Array
+                | Protected
+                | Pure
+                | Impure
+                | Function
+                | Procedure
+                | Vunit
+        )
+    }
+
+    pub fn is_operator(&self) -> bool {
+        matches!(
+            self.kind,
+            // Unary operators
+            Abs | Not |
+
+            // Unary and binary operators
+            Plus | Minus | QueQue |
+
+            // Binary operators
+            And | Or | Nand | Nor | Xor | Xnor | SLL | SRL | SLA | SRA | ROL | ROR |
+            Mod | Rem |
+            EQ | NE | LT | LTE | GT | GTE |
+            QueEQ | QueNE | QueLT | QueLTE | QueGT | QueGTE | Que |
+            Times | Pow | Div |
+            Concat |
+
+            // other operators
+        ColonEq | RightArrow |
+        Tick | Dot |
+        LeftPar | RightPar | LeftSquare | RightSquare |
+        SemiColon |
+        Colon |
+        Bar | BOX | LtLt | GtGt |
+        Circ |
+        CommAt |
+        Comma
+        )
+    }
+}
+
 /// A TokenId represents a unique value that is used to access a token.
 /// A token ID cannot be created directly by the user. Instead, the value must be taken
 /// from the AST.
@@ -2009,8 +2128,8 @@ end entity"
     #[test]
     fn tokenize_many_identifiers() {
         let code = Code::new(
-            "my_ident     
-        
+            "my_ident
+
 my_other_ident",
         );
         let tokens = code.tokenize();
